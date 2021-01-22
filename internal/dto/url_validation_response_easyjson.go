@@ -36,7 +36,7 @@ func easyjsonD69cde9dDecodeValidatorInternalDto(in *jlexer.Lexer, out *URLValida
 			continue
 		}
 		switch key {
-		case "Location":
+		case "location":
 			out.Location = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -53,7 +53,7 @@ func easyjsonD69cde9dEncodeValidatorInternalDto(out *jwriter.Writer, in URLValid
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Location\":"
+		const prefix string = ",\"location\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.Location))
 	}
