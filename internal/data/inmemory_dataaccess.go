@@ -17,8 +17,8 @@ type InMemoryDataAccess struct {
 
 // DoesURLExist Checks if the URL exists in the datastore stored in memory
 func (InMemoryDataAccess) DoesURLExist(urlValidationRequest dto.URLValidationRequest) bool {
-	for i := 0; i < len(dataStore); i++ {
-		url := dataStore[i]
+
+	for _, url := range dataStore {
 		if url.Domain == urlValidationRequest.Domain && url.Path == urlValidationRequest.Path {
 			return true
 		}
