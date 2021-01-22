@@ -13,7 +13,7 @@ import (
 	"github.com/mailru/easyjson"
 )
 
-// Server ...
+// Server struct holds our server dependencies
 type Server struct {
 	DataAccess data.IDataAccess
 }
