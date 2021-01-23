@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"validator/internal/data"
 	"validator/internal/dto"
@@ -13,9 +14,16 @@ import (
 	"github.com/mailru/easyjson"
 )
 
+type responseCache struct {
+	value bool
+	once  *sync.Once // used to allow us to fetch the value only once for each resource
+}
+
 // Server struct holds our server dependencies
 type Server struct {
-	DataAccess data.IDataAccess
+	DataAccess           data.IDataAccess
+	mutex                *sync.Mutex
+	requestToResponseMap map[dto.URLValidationRequest]responseCache
 }
 
 // Handles /validate-url path
@@ -45,9 +53,23 @@ func (server Server) validateURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// initialize entry in map if not already initialized
+	server.mutex.Lock()
+	if _, ok := server.requestToResponseMap[request]; !ok {
+		server.requestToResponseMap[request] = responseCache{value: false, once: &sync.Once{}}
+	}
+	server.mutex.Unlock()
+
+	// fetch data from data store only once per combination of domain and path
+	server.requestToResponseMap[request].once.Do(func() {
+		var tempCache = server.requestToResponseMap[request]
+		tempCache.value = server.DataAccess.DoesURLExist(request)
+		server.requestToResponseMap[request] = tempCache
+	})
+
 	// create response
 	location := ""
-	if server.DataAccess.DoesURLExist(request) {
+	if server.requestToResponseMap[request].value {
 		location = request.Domain + request.Path
 	}
 	responseObject := dto.URLValidationResponse{Location: location}
@@ -69,4 +91,12 @@ func (server Server) StartServer(port int) {
 	if err := http.ListenAndServe(address, nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// New Creates a new server instance and initializes it
+func New(dataAccess data.IDataAccess) Server {
+	server := Server{DataAccess: dataAccess}
+	server.mutex = &sync.Mutex{}
+	server.requestToResponseMap = make(map[dto.URLValidationRequest]responseCache)
+	return server
 }
