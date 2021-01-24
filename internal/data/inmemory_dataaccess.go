@@ -8,7 +8,7 @@ import (
 // In memory data store for development. In production our data would be stored externally.
 var dataStore = []model.URL{
 	{Domain: "ynte.co.il", Path: "/home/0,7340,L-8,00.html"},
-	{Domain: "walla.co.il", Path: "/"},
+	{Domain: "walla.co.il", Path: "/index.html"},
 	{Domain: "google.com", Path: "/index.html"}}
 
 // InMemoryDataAccess Implements IDataAccess interface
